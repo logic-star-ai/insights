@@ -29,6 +29,8 @@ class PrClassifier:
                 pr.agent = 'jules'
             if 'claude[bot]' in first_commit_first_authors:
                 pr.agent = 'claude'
+            if 'openhands-agent' in first_commit_first_authors:
+                pr.agent = 'openhands'
                 
         if pr.agent is None and pr.actor and pr.actor.type == 'Bot':
             pr.agent = "bot"
