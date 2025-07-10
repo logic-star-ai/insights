@@ -1,12 +1,19 @@
-import { agents, AgentType, displayAgents } from "@/lib/agents";
-import { getOverview } from "@/lib/db";
-import { AgentOverview } from "@/types/agent_overview";
+import { agentsInfo, AgentType } from "@/lib/agents";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "./ui/table";
+import Image from "next/image";
+import { Checkbox } from "./ui/checkbox";
+import { AgentOverview, Overview } from "@/lib/types";
 
-export async function OverviewTable() {
-  const data = await getOverview();
-  const rows: [AgentType, AgentOverview][] = Object.entries(data)
-    .filter(([k,]) => displayAgents.includes(k as AgentType))
+export function OverviewTable({
+  overview,
+  selectedAgents,
+  setSelectedAgents
+}: {
+  overview: Overview,
+  selectedAgents: Record<AgentType, boolean>
+  setSelectedAgents: any
+}) {
+  const rows: [AgentType, AgentOverview][] = Object.entries(overview)
     .map(([k, v]) => [k as AgentType, v])
   rows.sort(([, v1], [, v2]) => v2.total_prs - v1.total_prs);
 
@@ -15,6 +22,7 @@ export async function OverviewTable() {
       <Table>
         <TableHeader>
           <TableRow>
+            <TableHead className="w-[40px]"/>
             <TableHead>Agent</TableHead>
             <TableHead>PRs Opened</TableHead>
             <TableHead>PRs Closed</TableHead>
@@ -25,17 +33,24 @@ export async function OverviewTable() {
         <TableBody>
           {rows.map(([agent, overview]) => {
             return (
-              <TableRow key={agents[agent].name}>
+              <TableRow key={agentsInfo[agent].name}>
+                <TableCell className="flex justify-center">
+                  <Checkbox className="cursor-pointer" checked={selectedAgents[agent]} onClick={() => setSelectedAgents(
+                    {...selectedAgents, [agent]: !selectedAgents[agent]}
+                  )} />
+                </TableCell>
                 <TableCell>
                   <div className="flex gap-[10px] font-medium items-center">
-                    {!!agents[agent]?.logo ? (
-                      <img
-                        src={agents[agent].logo}
-                        alt={agents[agent].name}
-                        className={`h-[18px] w-[18px] ${agents[agent].logo_invert ? 'dark:invert' : ''}`}
+                    {!!agentsInfo[agent]?.logo ? (
+                      <Image
+                        width={20}
+                        height={20}
+                        src={agentsInfo[agent].logo}
+                        alt={agentsInfo[agent].name}
+                        className={`w-[18px] ${agentsInfo[agent].logo_invert ? 'dark:invert' : ''}`}
                       />
                     ) : null}
-                    {agents[agent].name}
+                    {agentsInfo[agent].name}
                   </div>
                 </TableCell>
                 <TableCell>{overview.total_prs || 0}</TableCell>

@@ -19,10 +19,11 @@ class LanguageInsight(BinnedPRInsight):
         "Kotlin",
     ]
 
-    def __init__(self, db_conninfo):
+    def __init__(self, backend_conninfo, frontend_conninfo):
         super().__init__(
             "insight_language",
-            db_conninfo,
+            backend_conninfo,
+            frontend_conninfo,
             key="repos.primary_language",
             bins=f"""
             CASE 

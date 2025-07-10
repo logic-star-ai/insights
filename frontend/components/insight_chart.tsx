@@ -7,7 +7,6 @@ import {
     CardAction,
     CardContent,
     CardDescription,
-    CardFooter,
     CardHeader,
     CardTitle,
 } from "@/components/ui/card"
@@ -18,28 +17,22 @@ import {
     ChartTooltipContent
 } from "@/components/ui/chart"
 import { useState } from "react"
-import { agents, AgentType, displayAgents } from "@/lib/agents"
+import { agentsInfo, agentsList, AgentType } from "@/lib/agents"
 import { Button } from "./ui/button"
 import { useMediaPredicate } from "react-media-hook";
 import { ValueType } from "recharts/types/component/DefaultTooltipContent"
 import { DropdownMenu, DropdownMenuCheckboxItem, DropdownMenuContent, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from "./ui/dropdown-menu"
-import { BinnedInsight } from "@/lib/db"
+import { BinnedInsight } from "@/lib/types"
 
 const chartConfig = Object.fromEntries(
-    Object.entries(agents).map(([key, agent], i) => [
+    Object.entries(agentsInfo).map(([key, agent], i) => [
         key,
         { label: agent.name, color: `var(--chart-${i + 1})` },
     ])
 ) satisfies ChartConfig
 
-const defaultShowAgents: AgentType[] = [AgentType.HUMAN, AgentType.CODEX, AgentType.JULES, AgentType.COPILOT];
-
-export function AgentInsightChart({ title, subtitle, insight, percentage = false, bounds = false, chartType = "line", xLabel = "" }:
-    { title: string, subtitle: string, insight: BinnedInsight, percentage?: boolean, bounds?: boolean, chartType?: "bar" | "line", xLabel?: string }) {
-    const [showAgents, setShowAgents] = useState(Object.fromEntries(
-        displayAgents.map((k) => [k, defaultShowAgents.includes(k)])
-    ));
-
+export function AgentInsightChart({ title, subtitle, insight, showAgents, percentage = false, bounds = false, chartType = "line", xLabel = "" }:
+    { title: string, subtitle: string, insight: BinnedInsight, showAgents: Record<AgentType, boolean>, percentage?: boolean, bounds?: boolean, chartType?: "bar" | "line", xLabel?: string }) {
     const isLargeScreen = useMediaPredicate("(min-width: 640px)");
 
     const [showBounds, setShowBounds] = useState(false);
@@ -121,7 +114,7 @@ export function AgentInsightChart({ title, subtitle, insight, percentage = false
                             }
                         }} />} />
 
-                        {chartType == 'line' && bounds && showBounds && displayAgents.map((k => {
+                        {chartType == 'line' && bounds && showBounds && agentsList.map((k => {
                             if (showAgents[k]) {
                                 return <Area
                                     key={k + "_base"}
@@ -138,7 +131,7 @@ export function AgentInsightChart({ title, subtitle, insight, percentage = false
                             }
                         }))}
 
-                        {chartType == 'line' && bounds && showBounds && displayAgents.map((k => {
+                        {chartType == 'line' && bounds && showBounds && agentsList.map((k => {
                             if (showAgents[k]) {
                                 return <Area
                                     key={k + "_base2"}
@@ -156,9 +149,8 @@ export function AgentInsightChart({ title, subtitle, insight, percentage = false
                         }))}
 
 
-                        {displayAgents.map((k => {
+                        {agentsList.map((k => {
                             if (showAgents[k]) {
-                                console.log(title, chartType)
                                 if (chartType == "line") {
                                     return <Line
                                         key={k}
@@ -192,18 +184,6 @@ export function AgentInsightChart({ title, subtitle, insight, percentage = false
                     </ComposedChart>
                 </ChartContainer>
             </CardContent>
-            <CardFooter>
-                <div className="flex gap-2 my-4 flex-wrap items-center justify-center">
-                    {displayAgents.map((k) => <Button key={k}
-                        className="cursor-pointer h-[25px] text-white"
-                        style={{ backgroundColor: showAgents[k] ? chartConfig[k].color : "var(--muted-foreground)" }}
-                        onClick={() => {
-                            setShowAgents({ ...showAgents, [k]: !showAgents[k] })
-                        }}>
-                        {agents[k].name}
-                    </Button>)}
-                </div>
-            </CardFooter>
         </Card>
     )
 }

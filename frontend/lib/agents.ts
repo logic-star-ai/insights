@@ -1,9 +1,9 @@
-
 export type AgentInfo = {
   logo: string;
   name: string;
 
   logo_invert: boolean;
+  url?: string;
 }
 
 export enum AgentType {
@@ -17,9 +17,11 @@ export enum AgentType {
   JULES = "jules",
   CURSOR = "cursor",
   TEMBO = "tembo",
+  COSINE = "cosine",
+  OPENHANDS = "openhands",
 }
 
-export const agents: Record<AgentType, AgentInfo> = {
+export const agentsInfo: Record<AgentType, AgentInfo> = {
   [AgentType.HUMAN]: {
     logo: "/icons/human.svg",
     logo_invert: false,
@@ -30,54 +32,65 @@ export const agents: Record<AgentType, AgentInfo> = {
     logo_invert: true,
     name: "Bot"
   },
-  [AgentType.JULES]: {
-    logo: "/icons/jules.svg",
-    logo_invert: false,
-    name: "Google Jules"
-  },
   [AgentType.CODEX]: {
     logo: "icons/openai.svg",
     logo_invert: true,
-    name: "OpenAI Codex"
+    name: "OpenAI Codex",
+    url: "https://openai.com/index/introducing-codex/"
+  },
+  [AgentType.JULES]: {
+    logo: "/icons/jules.svg",
+    logo_invert: false,
+    name: "Google Jules",
+    url: "https://blog.google/technology/google-labs/jules/"
+  },
+  [AgentType.COPILOT]: {
+    logo: "/icons/copilot.svg",
+    logo_invert: true,
+    name: "Github Copilot",
+    url: "https://docs.github.com/en/copilot/how-tos/agents/copilot-coding-agent/using-copilot-to-work-on-an-issue"
   },
   [AgentType.CLAUDE]: {
-    logo: "https://images.seeklogo.com/logo-png/55/1/claude-logo-png_seeklogo-554534.png",
+    logo: "/icons/claude.png",
     logo_invert: false,
     name: "Claude Agent"
   },
   [AgentType.DEVIN]: {
     logo: "/icons/devin.svg",
     logo_invert: false,
-    name: "Devin"
+    name: "Devin",
+    url: "https://devin.ai/"
   },
   [AgentType.CODEGEN]: {
-    logo: "https://images.crunchbase.com/image/upload/c_pad,f_auto,q_auto:eco,dpr_1/vwcj8othy51lisku77kw",
-    logo_invert: false,
-    name: "Codegen"
-  },
-  [AgentType.COPILOT]: {
-    logo: "/icons/copilot.svg",
+    logo: "/icons/codegen.svg",
     logo_invert: true,
-    name: "Github Copilot"
+    name: "Codegen",
+    url: "https://codegen.com/"
   },
   [AgentType.CURSOR]: {
     logo: "/icons/cursor.svg",
     logo_invert: true,
-    name: "Cursor Agent"
+    name: "Cursor Agent",
+    url: "https://docs.cursor.com/background-agent"
   },
   [AgentType.TEMBO]: {
-    logo: "https://www.tembo.io/favicon.ico",
+    logo: "/icons/tembo.jpeg",
+    logo_invert: true,
+    name: "Tembo",
+    url: "https://www.tembo.io/"
+  },
+  [AgentType.OPENHANDS]: {
+    logo: "/icons/openhands.png",
     logo_invert: false,
-    name: "Tembo"
-  }
+    name: "OpenHands",
+    url: "https://docs.all-hands.dev/"
+  },
+  [AgentType.COSINE]: {
+    logo: "/icons/cosine.png",
+    logo_invert: true,
+    name: "Cosine",
+    url: "https://cosine.sh/"
+  },
 }
 
-export const displayAgents: AgentType[] = [
-  AgentType.HUMAN,
-  AgentType.BOT,
-  AgentType.CODEX,
-  AgentType.COPILOT,
-  AgentType.JULES,
-  AgentType.CURSOR,
-  AgentType.DEVIN,
-]
+export const agentsList: Array<AgentType> = Object.keys(agentsInfo) as Array<AgentType>

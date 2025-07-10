@@ -28,6 +28,11 @@ Pull requests are classified using the following rules:
 - **GitHub Copilot**: PRs where the head branch starts with `copilot/`.
 - **Devin**: PRs authored by `devin-ai-integration[bot]`.
 - **Cursor Agent**: PRs where the head branch starts with `cursor/`.
+- **Claude Code**: PRs where the first commit is authored by `claude` or the head branch starts with `claude/`.
+- **OpenHands**: PRs where the first commit is authored by `openhands`.
+- **Codegen**: PRs authored by `codegen-sh`.
+- **Tembo**: PRs authored by `tembo-io`.
+- **Cosine**: PRs where the head branch starts with `cosine/`
 
 ## ⚙️ System Architecture
 
@@ -116,5 +121,5 @@ aitw scrape manager update
 We recommend running both the `update` and `insights` commands regularly (e.g., hourly).
 
 ## 📝 Changelog
-
+**2025-07-10**: Added “Cite Us” section, released dataset, and added OpenHands, Cosine, Claude Code, and Codegen agents.
 **2025-07-08**: Initial release of the dashboard.

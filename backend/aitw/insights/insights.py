@@ -6,13 +6,16 @@ from aitw.insights.overview import OverviewInsight
 from aitw.insights.insight import Insight
 from aitw.insights.change_language import ChangeLanguageInsight
 
-
-def insights(insight, db_conninfo):
+def insights(insight, backend_conninfo, frontend_conninfo):
+    frontend_conn = connect(frontend_conninfo)
+    backend_conn = connect(backend_conninfo)
+    
     hourly_insights: Dict[str, Insight] = {
-        "overview": OverviewInsight(db_conninfo),
-        "daily": BinnedPRInsight(
+        "overview": OverviewInsight(backend_conn, frontend_conn),
+        "daily_trend": BinnedPRInsight(
             "insight_daily",
-            db_conninfo,
+            backend_conn,
+            frontend_conn,
             key="(EXTRACT(EPOCH FROM prs.created_at)::int)",
             bins="(to_char(prs.created_at, 'YYYY-MM-DD'::text))",
             filter="created_at >= '2025-05-15 00:00:00'::timestamp without time zone",
@@ -20,10 +23,11 @@ def insights(insight, db_conninfo):
     }
     
     daily_insights: Dict[str, Insight] = {
-        "language": LanguageInsight(db_conninfo),
+        "language": LanguageInsight(backend_conn, frontend_conn),
         "repo_popularity": BinnedPRInsight(
             "insight_repo_popularity",
-            db_conninfo,
+            backend_conn,
+            frontend_conn,
             key="repos.stars",
             bins=[
                 (9, "<10"),
@@ -35,7 +39,8 @@ def insights(insight, db_conninfo):
         ),
         "change_complexity": BinnedPRInsight(
             "insight_change_complexity",
-            db_conninfo,
+            backend_conn,
+            frontend_conn,
             key="prs.additions + prs.deletions",
             bins=[
                 (2, "1-2"),
@@ -49,7 +54,8 @@ def insights(insight, db_conninfo):
         ),
         "changed_files": BinnedPRInsight(
             "insight_changed_files",
-            db_conninfo,
+            backend_conn,
+            frontend_conn,
             key="prs.changed_files",
             bins=[
                 (0, "0"),
@@ -67,7 +73,8 @@ def insights(insight, db_conninfo):
         ),
         "ad_ratio": BinnedPRInsight(
             "insight_ad_ratio",
-            db_conninfo,
+            backend_conn,
+            frontend_conn,
             key="""
             CASE
                 WHEN prs.deletions + prs.additions = 0 THEN NULL
@@ -90,7 +97,8 @@ def insights(insight, db_conninfo):
         ),
         "time_to_close": BinnedPRInsight(
             "insight_time_to_close",
-            db_conninfo,
+            backend_conn,
+            frontend_conn,
             key="EXTRACT(EPOCH FROM(closed_at - created_at))",
             bins=[
                 (60, "< 1m"),
@@ -100,7 +108,17 @@ def insights(insight, db_conninfo):
                 (None, "> 1d"),
             ],
         ),
-        "change_language": ChangeLanguageInsight(db_conninfo),
+        # "change_type": BinnedPRInsight(
+        #     "insight_change_type",
+        #     backend_conn,
+        #     frontend_conn,
+        #     key="prs_toc.type",
+        #     bins="prs_toc.type",
+        #     order="1",
+        #     joins=["JOIN prs_toc ON prs.id = prs_toc.pr_id"],
+        #     remove_uncertain=False,
+        # ),
+        "change_language": ChangeLanguageInsight(backend_conn, frontend_conn)
     }
     
     all_insights: Dict[str, Insight] = {**hourly_insights, **daily_insights}
@@ -114,6 +132,7 @@ def insights(insight, db_conninfo):
         for name, insight in daily_insights.items():
             print(f"⏳ Updating insight {name}")
             insight.refresh()
+            frontend_conn.commit()
             print(f"✅ Updated insight {name}")
     elif insight in all_insights:
         print(f"⏳ Updating insight {insight}")
@@ -123,9 +142,8 @@ def insights(insight, db_conninfo):
         print(f"❌ Invalid insight name: hourly|daily|{'|'.join(all_insights.keys())}")
 
     # Update last_updated
-    conn = connect(db_conninfo)
-    conn.execute(
+    frontend_conn.execute(
         "UPDATE metadata SET value = to_jsonb(((NOW() AT TIME ZONE 'UTC')::DATE)::text) WHERE key='last_updated';"
     )
-    conn.commit()
-    conn.close()
+    frontend_conn.commit()
+    frontend_conn.close()

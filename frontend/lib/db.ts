@@ -1,12 +1,27 @@
-import { AgentOverview } from '@/types/agent_overview';
 import { Pool, types } from 'pg';
 import { AgentType } from './agents';
+import { AgentOverview, BinnedInsight, InsightFilter, InsightItem, Release } from './types';
 
 types.setTypeParser(1114, str => new Date(str + 'Z'));
 
 const pool = new Pool({
   connectionString: `${process.env.DATABASE_URL}?application_name=${'frontend'}`,
 });
+
+export async function getLastRelease(): Promise<Release> {
+  const client = await pool.connect();
+
+  const res = await client.query(`SELECT doi, url, date::text FROM releases ORDER BY date DESC LIMIT 1`);
+
+  client.release();
+
+  return {
+    doi: res.rows[0]['doi'],
+    url: res.rows[0]['url'],
+    date: res.rows[0]['date']
+  };
+}
+
 
 export async function getLastUpdated(): Promise<string> {
   const client = await pool.connect();
@@ -17,14 +32,6 @@ export async function getLastUpdated(): Promise<string> {
 
   return res.rows[0]['value'];
 }
-
-export type InsightKey = string
-export type InsightValue = { value: number, lower?: number, upper?: number }
-export type InsightFilter = string
-
-export type InsightItem = Partial<Record<AgentType, InsightValue>> // Agent -> Value
-export type FilteredInsight = Array<[InsightKey, InsightItem]> // Key, Item
-export type BinnedInsight = Record<InsightFilter, FilteredInsight> // Filter -> Insight (Filter -> Key -> Agent -> Value)
 
 export async function getBinnedInsight(table: string, x: string, y: string, order: string, bounds: boolean = false): Promise<BinnedInsight> {
   const client = await pool.connect();

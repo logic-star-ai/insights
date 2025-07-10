@@ -33,8 +33,7 @@ class PullRequestFile:
 class PullRequest:
     id: int
     url: str
-    
-    agent: str | None
+
     actor: Actor | None
     
     created_at: str
@@ -61,4 +60,7 @@ class PullRequest:
     files: List[PullRequestFile] | None
     commitsList: List[Commit] | None
     commentsList: List[Comment] | None
+    
+    agent: str | None = None
+    primary_language: str | None = None
    

@@ -1,5 +1,6 @@
 click
 requests
+requests_toolbelt
 types-requests
 psycopg
 psycopg[binary]
@@ -10,3 +11,5 @@ statsmodels
 google-cloud-logging
 ruff
 mypy
+dacite
+google-genai
