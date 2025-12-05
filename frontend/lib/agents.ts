@@ -47,13 +47,13 @@ export const agentsInfo: Record<AgentType, AgentInfo> = {
   [AgentType.COPILOT]: {
     logo: "/icons/copilot.svg",
     logo_invert: true,
-    name: "Github Copilot",
+    name: "GitHub Copilot",
     url: "https://docs.github.com/en/copilot/how-tos/agents/copilot-coding-agent/using-copilot-to-work-on-an-issue"
   },
   [AgentType.CLAUDE]: {
     logo: "/icons/claude.png",
     logo_invert: false,
-    name: "Claude Agent"
+    name: "Claude Code"
   },
   [AgentType.DEVIN]: {
     logo: "/icons/devin.svg",

@@ -1,7 +1,3 @@
-# submit <backfill | update>
-
-# status <group>
-
 from datetime import datetime, timedelta, timezone
 import time
 import click
@@ -9,8 +5,6 @@ from tqdm import tqdm
 
 from aitw.database.connection import connect
 from aitw.scrape.job import CreateScrapeJob, JobManager
-
-DATE_FROMAT = "%Y-%m-%dT%H:%M:%S"
 
 def slice(start, end, slice_size):
     total_seconds = (end - start).total_seconds()
@@ -36,12 +30,15 @@ def update(db_conninfo):
             if cur.rowcount > 0:
                 (last_end, ) = cur.fetchone()
             else:
-                last_end = datetime.now(tz=timezone.utc) - timedelta(days=7)
+                last_end = datetime.now().astimezone() - timedelta(days=7)
             
     conn.close()
     
-    start = last_end.replace(tzinfo=timezone.utc)
-    end = (datetime.now(tz=timezone.utc) - timedelta(minutes=15)).replace(second=0, microsecond=0)
+    # Be really careful with the datetimes: datetime.now() returns a naive datetime with no
+    # timezone information attached. Postgres always gives us datetimes in local time but with tz attached.
+    # .astimezone() attaches the current local timezone information.
+    start = last_end.replace(second=0, microsecond=0)
+    end = (datetime.now().astimezone() - timedelta(minutes=15)).replace(second=0, microsecond=0)
 
     sliced = slice(start, end, 60)
     
@@ -71,12 +68,17 @@ def update(db_conninfo):
         ]
     )
     job_manager.close()
+    
+    for start,end in sliced:
+        click.echo(f"Submitting: {start} {end}")
 
-    click.echo(f"✅ Submitted {2*len(sliced)} jobs")
+    click.echo(f"✅ Submitted {2*len(sliced)} jobs from {start} .. {end}")
+    
 
 def backfill(db_conninfo):
-    start = datetime.strptime("2025-05-15T00:00:00", DATE_FROMAT).replace(tzinfo=timezone.utc)
-    end = (datetime.now(tz=timezone.utc))
+    # 2025-05-15 00:00:00 UTC
+    start = datetime(2025, 5, 15, 0, 0, 0,0, timezone.utc).astimezone()
+    end = datetime.now().astimezone()
 
     sliced = slice(start, end, 60)
 

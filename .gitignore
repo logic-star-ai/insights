@@ -8,3 +8,4 @@ venv
 *.sql
 prod_to_dev.sh
 .DS_Store
+/archive/

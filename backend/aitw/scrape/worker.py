@@ -16,11 +16,9 @@ from aitw.database.connection import connect
 from aitw.scrape.job import ScrapeJob, mark_job_done, mark_job_failed, pick_job
 from aitw.scrape.scraper import GitHubScraper
 
-DATE_FROMAT = "%Y-%m-%dT%H:%M:%S"
-
 def execute_job(job: ScrapeJob, token: str, db_conn: str):
-    start_date = job.from_date.strftime(DATE_FROMAT)
-    end_date = job.to_date.strftime(DATE_FROMAT)
+    start_date = job.from_date
+    end_date = job.to_date
     query = job.query
 
     logging.info(f'ℹ️  Executing job id={job.id} group={job.group} start={start_date} end={end_date} query={query}...')

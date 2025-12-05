@@ -17,7 +17,7 @@ def insights(insight, backend_conninfo, frontend_conninfo):
             backend_conn,
             frontend_conn,
             key="(EXTRACT(EPOCH FROM prs.created_at)::int)",
-            bins="(to_char(prs.created_at, 'YYYY-MM-DD'::text))",
+            bins="(to_char(prs.created_at AT TIME ZONE 'UTC', 'YYYY-MM-DD'::text))",
             filter="created_at >= '2025-05-15 00:00:00'::timestamp without time zone",
         ),
     }

@@ -1,4 +1,5 @@
 
+from datetime import datetime, timezone
 import requests
 import logging
 import time
@@ -7,6 +8,8 @@ from typing import Iterator, Optional
 
 from aitw.database.pull_request import Actor, Comment, Commit, CommitAuthor, PullRequest, PullRequestFile
 from aitw.database.repository import Repository
+
+DATE_FORMAT = "%Y-%m-%dT%H:%M:%SZ"
 
 class GitHubScraper:
     batch_size = 25
@@ -73,21 +76,35 @@ class GitHubScraper:
             time.sleep(backoff)
             backoff *= 2 
         
-    def count(self, start_date: str, end_date: str, filter: str):
-        query = self.build_query(filter=filter, start_date=start_date, end_date=end_date, first=0, after=None)
+    def count(self, start_date: datetime, end_date: datetime, filter: str):
+        # From here on we only talk about UTC date strings
+        start_date_str: str = start_date.astimezone(timezone.utc).strftime(DATE_FORMAT)
+        end_date_str: str = end_date.astimezone(timezone.utc).strftime(DATE_FORMAT)
+        
+        query = self.build_query(filter=filter, start_date=start_date_str, end_date=end_date_str, first=0, after=None)
         
         response = self.request_and_backoff(query)
         data = response.json()
         return data["data"]["search"]["issueCount"]
 
-    def scrape(self, start_date: str, end_date: str, filter: str) -> Iterator[PullRequest | Repository | None]:
-        curr_start_date = start_date # Current start to bypass 1,000 search limit
+    def scrape(self, start_date: datetime, end_date: datetime, filter: str) -> Iterator[PullRequest | Repository | None]:
+        # From here on we only talk about UTC date strings
+        start_date_str = start_date.astimezone(timezone.utc).strftime(DATE_FORMAT)
+        end_date_str = end_date.astimezone(timezone.utc).strftime(DATE_FORMAT)
+        
+        curr_start_date = start_date_str # Current start to bypass 1,000 search limit
         curr_after = None # Cursor based pagination
         num_res_page = 0 # Number of results returned on current page (must be < 1,000)
         curr_batch_size = self.batch_size
 
         while True:
-            query = self.build_query(filter=filter, start_date=curr_start_date, end_date=end_date, first=curr_batch_size, after=curr_after)
+            query = self.build_query(
+                filter=filter,
+                start_date=curr_start_date,
+                end_date=end_date_str,
+                first=curr_batch_size,
+                after=curr_after
+            )
             try:
                 response = self.request_and_backoff(query, {'batch_size': curr_batch_size, 'start_date':curr_start_date, 'after': curr_after})
                 
@@ -108,8 +125,8 @@ class GitHubScraper:
                             login=item['author'] and item['author']['login'],
                             type=item['author'] and item['author']['__typename']
                         ),
-                        created_at = item['createdAt'],
-                        closed_at = item['closedAt'],
+                        created_at = datetime.strptime(item['createdAt'], DATE_FORMAT).replace(tzinfo=timezone.utc).astimezone(),
+                        closed_at = datetime.strptime(item['closedAt'], DATE_FORMAT).replace(tzinfo=timezone.utc).astimezone() if item['closedAt'] else None,
                         isMerged = item['mergedAt'] is not None,
                         isDraft= item['isDraft'],
                         additions = item['additions'],

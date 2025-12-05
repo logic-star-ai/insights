@@ -1,5 +1,6 @@
 
 from dataclasses import dataclass
+from datetime import datetime
 from typing import List
 
 @dataclass
@@ -36,8 +37,9 @@ class PullRequest:
 
     actor: Actor | None
     
-    created_at: str
-    closed_at: str
+    created_at: datetime
+    closed_at: datetime | None
+    
     isMerged: bool
     isDraft: bool
     
